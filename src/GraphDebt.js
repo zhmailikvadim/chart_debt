@@ -4,6 +4,15 @@ import CSVReader from 'papaparse';
 import Loader from './Loader';
 import TableBar from './TableBar.js';
 
+const debt = 'debt'
+const debtOver = 'debt_over'
+const debtAndOver = 'debt_and_over'
+const overall = 'Общая'
+const overdue= 'Просроченная'
+const debtTitle = 'Вся дебиторская задолженность(USD)'
+const debtOverTitle = 'Просроченная дебиторская задолженность(USD)'
+const debtAndOverTitle = 'Дебиторская задолженность без стран(USD)'
+
 class GraphDebt extends Component {
     constructor() {
       super();
@@ -14,7 +23,8 @@ class GraphDebt extends Component {
         data:[],
         fcat:[],
         fields:[],
-        chartType:'debt_over',
+        chartType:debtOver,
+        title:debtOverTitle
       };
     }
 
@@ -55,24 +65,26 @@ class GraphDebt extends Component {
                   isLoading: false,
                   data:results.data
 
-                })                      
+                })   
+                console.log(results.data)                   
             }
           }) 
           resolve (true);
         });
       } 
 
-    onDebt=()=>{this.setState({chartType:'debt'})}  
-    onDebtOver=()=>{this.setState({chartType:'debt_over'})}  
+    onDebt=()=>{this.setState({chartType:debt,title:debtTitle})}  
+    onDebtOver=()=>{this.setState({chartType:debtOver,title:debtOverTitle})}  
+    onDebtAndOver=()=>{this.setState({chartType:debtAndOver,title:debtAndOverTitle})}  
     
     render() {
-    let chartTitle; 
     let data = this.state.data;
     let labels = [];
     let landx = [];
 
     let uniqueLabels = [];
     this.state.data.map((element,i)=>(labels.push(element.DATA)))
+
     labels.forEach(function(item) 
     {
         if(uniqueLabels.indexOf(item) < 0) 
@@ -82,7 +94,21 @@ class GraphDebt extends Component {
     });  
     
     let uniqueLandx = [];
-    this.state.data.map((element,i)=>(landx.push(element.LANDX)))
+    this.state.data.map((element)=>
+    {
+      if (this.state.chartType !== debtAndOver) 
+      {
+        if (element.LANDX !== overall && element.LANDX !== overdue) landx.push(element.LANDX)
+      }
+      if (this.state.chartType === debtAndOver) 
+      {
+        if (element.LANDX === overall || element.LANDX === overdue) 
+        {
+          landx.push(element.LANDX)
+        }
+      }        
+    })
+
     landx.forEach(function(item) 
     {
         if(uniqueLandx.indexOf(item) < 0) 
@@ -90,6 +116,8 @@ class GraphDebt extends Component {
             uniqueLandx.push(item);
         }
     });     
+
+    console.log(uniqueLandx)
 
        let dataset = 
     {
@@ -152,7 +180,7 @@ class GraphDebt extends Component {
         cloneDataset = Object.assign({}, dataset) 
         cloneDataset.data = [] 
         let findElement = false;
-        let debt;
+        let debt_usd;
         let chartType = this.state.chartType;
         myCSVData.labels.forEach(function(item_data)
         {
@@ -162,13 +190,12 @@ class GraphDebt extends Component {
             {           
                if (land === item.LANDX && item.DATA === item_data ) {
                    //console.log(item.DATA)
-                   if (chartType ==='debt') {debt = item.DEBT_USD 
-                                             chartTitle = 'Вся дебиторская задолженность(USD)'}
-                   if (chartType ==='debt_over') {debt = item.DEBT_OVER_USD
-                                              chartTitle = 'Просроченная дебиторская задолженность(USD)'}                 
-                   cloneDataset.data.push(debt)
+                   if (chartType === debt) {debt_usd = item.DEBT_USD}
+                   if (chartType === debtOver) {debt_usd = item.DEBT_OVER_USD}       
+                   if (chartType === debtAndOver) {debt_usd = item.DEBT_USD}                                                                                                      
+                   cloneDataset.data.push(debt_usd)
                    findElement = true 
-                }
+                }                            
             }); 
 
             if (findElement === false)
@@ -183,10 +210,17 @@ class GraphDebt extends Component {
         <header>
                <TableBar onDebt={this.onDebt} 
                          onDebtOver={this.onDebtOver}
+                         onDebtAndOver={this.onDebtAndOver}
                          chartType = {this.state.chartType}/>
         </header>
       );
     const options = {
+      title: {
+        display: true,
+        fontColor:'#000000',
+        fontSize:16,
+        text: this.state.title
+    },      
       showScale: true,
         scales: {
           xAxes: [
@@ -211,18 +245,16 @@ class GraphDebt extends Component {
         }
     }  
     const outChart = (
-        <div className="container">{chartTitle}
+        <div className="container">
         {
           ( this.state.isLoading || this.state.isLoading_fcat )
           ? <Loader />
           : <React.Fragment>
               {defaultTableBar}
-              <Line data={myCSVData} options = {options}/>
+              <Line data={myCSVData} options = {options} title = 'График'/>
            </React.Fragment>
         }
         </div>)
-
-    //console.log(myCSVData)
 
     return(          
         <div>{outChart}</div>

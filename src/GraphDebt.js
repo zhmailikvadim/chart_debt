@@ -143,7 +143,7 @@ class GraphDebt extends Component {
         pointHoverBorderWidth: 2,
         pointRadius: 1,
         pointHitRadius: 10,        
-        data: [], // ДАННЫЕ - здесь ваши "количество говорящих" - 652230, 1580, 28748.. - так же в массиве и в том же порядке.        
+        data: [], // ДАННЫЕ - здесь ваши данные- 652230, 1580, 28748.. - так же в массиве и в том же порядке.        
     }
 
     var myCSVData =
@@ -219,13 +219,25 @@ class GraphDebt extends Component {
                          chartType = {this.state.chartType}/>
        </React.Fragment>
       );
+
     const options = {
         title: {
         display: true,
         fontColor:'#000000',
         fontSize:16,
         text: this.state.title
-    },      
+    },  
+    
+    /*tooltips: {
+      callbacks: {
+          label: function(tooltipItem, data) {
+              return "$" + Number(tooltipItem.yLabel).toFixed(0).replace(/./g, function(c, i, a) {
+                  return i > 0 && c !== "." && (a.length - i) % 3 === 0 ? "," + c : c;
+              });
+          }
+      }
+  },*/
+      
     zoom: {
       enabled: true,
       mode: 'y',
@@ -238,6 +250,11 @@ class GraphDebt extends Component {
         scales: {
           xAxes: [
             {
+              scaleLabel: {
+                display: true,
+                fontColor:'#218493',
+                labelString: 'Дата: прошлые периоды - на последнюю дату месяца, текущий период - по дням'
+              },              
               ticks: {
                 //suggestedMax: 10,
                   //min: 1000,
@@ -248,7 +265,18 @@ class GraphDebt extends Component {
           ],
           yAxes: [
             {
+              scaleLabel: {
+                fontColor:'#218493',
+                display: true,
+                labelString: 'USD'
+              },
               ticks: {
+                callback: function(value, index, values) {
+                  return Number(value).toFixed(0).replace(/./g, function(c, i, a) {
+                      return i > 0 && c !== "." && (a.length - i) % 3 === 0 ? " " + c : c;
+                  });
+              }
+                            
               // min: 1000000,
                // max:5000000
                //stepSize: 1000000

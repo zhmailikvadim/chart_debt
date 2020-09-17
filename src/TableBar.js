@@ -2,10 +2,20 @@ import React, { Component } from 'react';
 import Button from 'react-bootstrap/Button';
 import { ButtonToolbar } from 'react-bootstrap';
 import './TableBar.css';
+import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
 const debt = 'debt'
 const debtOver = 'debt_over'
 const debtAndOver = 'debt_and_over'
 class TableBar extends Component {
+    targetElement = null;
+   
+    componentDidMount() {
+      // 3. Get a target element that you want to persist scrolling for (such as a modal/lightbox/flyout/nav).
+      // Specifically, the target element is the one we would like to allow scroll on (NOT a parent of that element).
+      // This is also the element to apply the CSS '-webkit-overflow-scrolling: touch;' if desired.
+      this.targetElement = document.querySelector('#buttons');
+      //disableBodyScroll(this.targetElement);
+    }    
     render()
     {
         let debt_act;

@@ -3,6 +3,8 @@ import {Line} from 'react-chartjs-2';
 import CSVReader from 'papaparse';
 import Loader from './Loader';
 import TableBar from './TableBar.js';
+import 'chartjs-plugin-zoom';
+
 
 const debt = 'debt'
 const debtOver = 'debt_over'
@@ -14,6 +16,7 @@ const debtOverTitle = 'Просроченная дебиторская задо�
 const debtAndOverTitle = 'Дебиторская задолженность без стран(USD)'
 
 class GraphDebt extends Component {
+  
     constructor() {
       super();
       this.state = {
@@ -29,6 +32,7 @@ class GraphDebt extends Component {
     }
 
     async componentDidMount() {
+
         await new Promise( (resolve, reject) => {
           CSVReader.parse("https://crm.gomselmash.by/zva501_graph_fcat.csv", {
             download: true,
@@ -207,20 +211,29 @@ class GraphDebt extends Component {
         myCSVData.datasets.push(cloneDataset)
     });
     const defaultTableBar = (
-        <header>
-               <TableBar onDebt={this.onDebt} 
+      <React.Fragment>
+               <TableBar
+                         onDebt={this.onDebt} 
                          onDebtOver={this.onDebtOver}
                          onDebtAndOver={this.onDebtAndOver}
                          chartType = {this.state.chartType}/>
-        </header>
+       </React.Fragment>
       );
     const options = {
-      title: {
+        title: {
         display: true,
         fontColor:'#000000',
         fontSize:16,
         text: this.state.title
     },      
+    zoom: {
+      enabled: true,
+      mode: 'y',
+    },
+    pan: {
+      enabled: true,
+      mode: 'xy',
+    },    
       showScale: true,
         scales: {
           xAxes: [
@@ -249,9 +262,11 @@ class GraphDebt extends Component {
         {
           ( this.state.isLoading || this.state.isLoading_fcat )
           ? <Loader />
-          : <React.Fragment>
+          : <React.Fragment >
               {defaultTableBar}
-              <Line data={myCSVData} options = {options} title = 'График'/>
+              <div style={ {position: "sticky", margin: "left", width: "90vw"} }>
+                <Line data={myCSVData} options = {options} title = 'График'/>
+              </div>
            </React.Fragment>
         }
         </div>)
